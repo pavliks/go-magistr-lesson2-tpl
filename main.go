@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
-
-  "gopkg.in/yaml.v3"
 )
 
 func main() {
@@ -62,19 +61,19 @@ func main() {
 	}
 
 	if nodeAPIVersion == nil {
-		fmt.Fprintf(os.Stderr, "%s: apiVersion is required\n", base)
+		fmt.Printf("%s: apiVersion is required\n", base)
 		errorsFound++
 	}
 	if nodeKind == nil {
-		fmt.Fprintf(os.Stderr, "%s: kind is required\n", base)
+		fmt.Printf("%s: kind is required\n", base)
 		errorsFound++
 	}
 	if nodeMetadata == nil {
-		fmt.Fprintf(os.Stderr, "%s: metadata is required\n", base)
+		fmt.Printf("%s: metadata is required\n", base)
 		errorsFound++
 	}
 	if nodeSpec == nil {
-		fmt.Fprintf(os.Stderr, "%s: spec is required\n", base)
+		fmt.Printf("%s: spec is required\n", base)
 		errorsFound++
 	}
 
@@ -90,7 +89,7 @@ func main() {
 	}
 
 	if metaName == nil || strings.TrimSpace(metaName.Value) == "" {
-		fmt.Fprintf(os.Stderr, "%s: name is required\n", base)
+		fmt.Printf("%s: name is required\n", base)
 		errorsFound++
 	}
 
@@ -113,7 +112,7 @@ func main() {
 		if specOS.Kind == yaml.ScalarNode {
 			value := strings.TrimSpace(specOS.Value)
 			if value != "linux" && value != "windows" {
-				fmt.Fprintf(os.Stderr, "%s:%d os has unsupported value '%s'\n", base, specOS.Line, specOS.Value)
+				fmt.Printf("%s:%d os has unsupported value '%s'\n", base, specOS.Line, specOS.Value)
 				errorsFound++
 			}
 		} else if specOS.Kind == yaml.MappingNode {
@@ -126,11 +125,11 @@ func main() {
 				}
 			}
 			if osName == nil || strings.TrimSpace(osName.Value) == "" {
-				fmt.Fprintf(os.Stderr, "%s: name is required\n", base)
+				fmt.Printf("%s: name is required\n", base)
 				errorsFound++
 			} else {
 				if osName.Value != "linux" && osName.Value != "windows" {
-					fmt.Fprintf(os.Stderr, "%s:%d os has unsupported value '%s'\n", base, osName.Line, osName.Value)
+					fmt.Printf("%s:%d os has unsupported value '%s'\n", base, osName.Line, osName.Value)
 					errorsFound++
 				}
 			}
@@ -138,10 +137,10 @@ func main() {
 	}
 
 	if specContainers == nil {
-		fmt.Fprintf(os.Stderr, "%s: containers is required\n", base)
+		fmt.Printf("%s: containers is required\n", base)
 		errorsFound++
 	} else if specContainers.Kind != yaml.SequenceNode || len(specContainers.Content) == 0 {
-		fmt.Fprintf(os.Stderr, "%s: containers is required\n", base)
+		fmt.Printf("%s: containers is required\n", base)
 		errorsFound++
 	} else {
 		for _, containerNode := range specContainers.Content {
@@ -172,20 +171,20 @@ func main() {
 			}
 
 			if containerName == nil || strings.TrimSpace(containerName.Value) == "" {
-				fmt.Fprintf(os.Stderr, "%s: name is required\n", base)
+				fmt.Printf("%s: name is required\n", base)
 				errorsFound++
 			} else {
 				if !regexSnake.MatchString(containerName.Value) {
-					fmt.Fprintf(os.Stderr, "%s:%d name has invalid format '%s'\n", base, containerName.Line, containerName.Value)
+					fmt.Printf("%s:%d name has invalid format '%s'\n", base, containerName.Line, containerName.Value)
 					errorsFound++
 				}
 			}
 
 			if containerImage == nil || strings.TrimSpace(containerImage.Value) == "" {
-				fmt.Fprintf(os.Stderr, "%s: image is required\n", base)
+				fmt.Printf("%s: image is required\n", base)
 				errorsFound++
 			} else if !regexImage.MatchString(containerImage.Value) {
-				fmt.Fprintf(os.Stderr, "%s:%d image has invalid format '%s'\n", base, containerImage.Line, containerImage.Value)
+				fmt.Printf("%s:%d image has invalid format '%s'\n", base, containerImage.Line, containerImage.Value)
 				errorsFound++
 			}
 
@@ -207,23 +206,23 @@ func main() {
 					}
 					if portNode != nil {
 						if portNode.Tag == "!!str" {
-							fmt.Fprintf(os.Stderr, "%s:%d containerPort must be int\n", base, portNode.Line)
+							fmt.Printf("%s:%d containerPort must be int\n", base, portNode.Line)
 							errorsFound++
 						} else {
 							portValue, _ := strconv.Atoi(strings.TrimSpace(portNode.Value))
 							if portValue <= 0 || portValue > 65535 {
-								fmt.Fprintf(os.Stderr, "%s:%d containerPort value out of range\n", base, portNode.Line)
+								fmt.Printf("%s:%d containerPort value out of range\n", base, portNode.Line)
 								errorsFound++
 							}
 						}
 					} else {
-						fmt.Fprintf(os.Stderr, "%s: containerPort is required\n", base)
+						fmt.Printf("%s: containerPort is required\n", base)
 						errorsFound++
 					}
 					if protocolNode != nil {
 						proto := strings.TrimSpace(protocolNode.Value)
 						if proto != "" && proto != "TCP" && proto != "UDP" {
-							fmt.Fprintf(os.Stderr, "%s:%d protocol has unsupported value '%s'\n", base, protocolNode.Line, protocolNode.Value)
+							fmt.Printf("%s:%d protocol has unsupported value '%s'\n", base, protocolNode.Line, protocolNode.Value)
 							errorsFound++
 						}
 					}
@@ -243,7 +242,7 @@ func main() {
 					}
 				}
 				if httpGet == nil {
-					fmt.Fprintf(os.Stderr, "%s: httpGet is required\n", base)
+					fmt.Printf("%s: httpGet is required\n", base)
 					errorsFound++
 					return
 				}
@@ -261,23 +260,23 @@ func main() {
 					}
 					if pathNode == nil || !strings.HasPrefix(strings.TrimSpace(pathNode.Value), "/") {
 						if pathNode == nil {
-							fmt.Fprintf(os.Stderr, "%s: path is required\n", base)
+							fmt.Printf("%s: path is required\n", base)
 						} else {
-							fmt.Fprintf(os.Stderr, "%s:%d path has invalid format '%s'\n", base, pathNode.Line, pathNode.Value)
+							fmt.Printf("%s:%d path has invalid format '%s'\n", base, pathNode.Line, pathNode.Value)
 						}
 						errorsFound++
 					}
 					if portNode == nil {
-						fmt.Fprintf(os.Stderr, "%s: port is required\n", base)
+						fmt.Printf("%s: port is required\n", base)
 						errorsFound++
 					} else {
 						if portNode.Tag == "!!str" {
-							fmt.Fprintf(os.Stderr, "%s:%d port must be int\n", base, portNode.Line)
+							fmt.Printf("%s:%d port must be int\n", base, portNode.Line)
 							errorsFound++
 						} else {
 							portValue, _ := strconv.Atoi(strings.TrimSpace(portNode.Value))
 							if portValue <= 0 || portValue > 65535 {
-								fmt.Fprintf(os.Stderr, "%s:%d port value out of range\n", base, portNode.Line)
+								fmt.Printf("%s:%d port value out of range\n", base, portNode.Line)
 								errorsFound++
 							}
 						}
@@ -289,7 +288,7 @@ func main() {
 			checkProbe(containerLiveness, "livenessProbe")
 
 			if containerResources == nil {
-				fmt.Fprintf(os.Stderr, "%s: resources is required\n", base)
+				fmt.Printf("%s: resources is required\n", base)
 				errorsFound++
 			} else {
 				if containerResources.Kind == yaml.MappingNode {
@@ -312,13 +311,13 @@ func main() {
 						}
 						if cpuNode != nil {
 							if cpuNode.Tag == "!!str" {
-								fmt.Fprintf(os.Stderr, "%s:%d cpu must be int\n", base, cpuNode.Line)
+								fmt.Printf("%s:%d cpu must be int\n", base, cpuNode.Line)
 								errorsFound++
 							}
 						}
 						if memoryNode != nil {
 							if memoryNode.Tag != "!!str" || !regexMemory.MatchString(strings.TrimSpace(memoryNode.Value)) {
-								fmt.Fprintf(os.Stderr, "%s:%d memory has invalid format '%s'\n", base, memoryNode.Line, memoryNode.Value)
+								fmt.Printf("%s:%d memory has invalid format '%s'\n", base, memoryNode.Line, memoryNode.Value)
 								errorsFound++
 							}
 						}
@@ -329,11 +328,11 @@ func main() {
 	}
 
 	if nodeAPIVersion != nil && strings.TrimSpace(nodeAPIVersion.Value) != "v1" {
-		fmt.Fprintf(os.Stderr, "%s:%d apiVersion has unsupported value '%s'\n", base, nodeAPIVersion.Line, nodeAPIVersion.Value)
+		fmt.Printf("%s:%d apiVersion has unsupported value '%s'\n", base, nodeAPIVersion.Line, nodeAPIVersion.Value)
 		errorsFound++
 	}
 	if nodeKind != nil && strings.TrimSpace(nodeKind.Value) != "Pod" {
-		fmt.Fprintf(os.Stderr, "%s:%d kind has unsupported value '%s'\n", base, nodeKind.Line, nodeKind.Value)
+		fmt.Printf("%s:%d kind has unsupported value '%s'\n", base, nodeKind.Line, nodeKind.Value)
 		errorsFound++
 	}
 
